@@ -5,11 +5,12 @@ import pickle
 from tqdm import tqdm
 
 class DiscreteSpringMassSystem: 
-    def __init__(self, m, k, b, dt, method='euler'): 
+    def __init__(self, m, k, b, dt, method='euler', noisy=False): 
         self.m = m
         self.k = k
         self.b = b
         self.dt = dt 
+        self.noisy = noisy
 
         if method == 'euler': 
             self.A = np.array([[1, dt], 
@@ -36,7 +37,11 @@ class DiscreteSpringMassSystem:
                                [v0]])
 
     def step(self, u):
-        self.state = self.A @ self.state + self.B @ u
+        if self.noisy: 
+            process_noise = np.random.normal(0, 0.02, size=self.state.shape)
+        else: 
+            process_noise = np.zeros_like(self.state)
+        self.state = self.A @ self.state + self.B @ u + process_noise
         return self.state 
     
     def simulate(self, x0, v0, total_time, controller=None): 
